@@ -1,14 +1,14 @@
-import type { PassRequest, PassResponse } from "../types/pass.js";
-import { generatePassId } from "../utils/uuid.js";
-import { PKPass } from "passkit-generator";
 import fs from "node:fs";
+import { PKPass } from "passkit-generator";
+import { CONFIG } from "../config/constants.js";
+import type { PassRequest } from "../types/pass.js";
 
 /**
  * Generate a pass using the passkit-generator library
  */
 export async function generatePass(
   passData: PassRequest
-): Promise<PassResponse["data"]> {
+): Promise<PKPass> {
   try {
     /** Each, but last, can be either a string or a Buffer. See API Documentation for more */
     // const { wwdr, signerCert, signerKey, signerKeyPassphrase } = getCertificatesContentsSomehow();
@@ -21,14 +21,18 @@ export async function generatePass(
         // "it.lproj/pass.strings": fs.readFileSync('examplePass.pass/it.lproj/pass.strings'),
       },
       {
-        wwdr: fs.readFileSync("ssl-cert-snakeoil.pem").toString(),
-        signerCert: fs.readFileSync("ssl-cert-snakeoil.pem").toString(),
-        signerKey: fs.readFileSync("ssl-cert-snakeoil.key").toString(),
-        signerKeyPassphrase: "ssl-cert-snakeoil",
+        wwdr: Buffer.from(CONFIG.PKPASS_WWDR, "base64").toString(),
+        signerCert: Buffer.from(CONFIG.PKPASS_SIGNER_CERT, "base64").toString(),
+        signerKey: Buffer.from(CONFIG.PKPASS_SIGNER_KEY, "base64").toString(),
+        signerKeyPassphrase: CONFIG.PKPASS_SIGNER_KEY_PASSPHRASE,
       },
       {
         // keys to be added or overridden
+        passTypeIdentifier: CONFIG.PKPASS_PASS_TYPE_IDENTIFIER,
+        teamIdentifier: CONFIG.PKPASS_TEAM_IDENTIFIER,
         serialNumber: "AAGH44625236dddaffbda",
+        webServiceURL: undefined,
+        authenticationToken: undefined,
       }
     );
 
@@ -36,18 +40,7 @@ export async function generatePass(
     // pass.localize("en", { ... });
     pass.setBarcodes("36478105430"); // Random value
 
-    const passId = generatePassId();
-    // In a real application, the 'buffer' would be stored (e.g., in a database, S3, local file system)
-    // and a download URL would be generated for it.
-    // For now, we'll use a placeholder URL.
-    const downloadUrl = `/passes/${passId}/download`; // This would be an endpoint that serves the buffer
-    const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString(); // Expires in 1 hour from now
-
-    return {
-      passId,
-      downloadUrl,
-      expiresAt,
-    };
+    return pass;
   } catch (err) {
     console.error("Error generating pass:", err);
     // Rethrow the error to indicate failure, as the function is typed to return a successful PassResponse["data"]
