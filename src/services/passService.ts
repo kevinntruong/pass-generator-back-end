@@ -1,23 +1,51 @@
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { PKPass } from "passkit-generator";
 import { CONFIG } from "../config/constants.js";
 import type { PassRequest } from "../types/pass.js";
 
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /**
  * Generate a pass using the passkit-generator library
  */
-export async function generatePass(
-  passData: PassRequest
-): Promise<PKPass> {
+export async function generatePass(passData: PassRequest): Promise<PKPass> {
   try {
-    /** Each, but last, can be either a string or a Buffer. See API Documentation for more */
-    // const { wwdr, signerCert, signerKey, signerKeyPassphrase } = getCertificatesContentsSomehow();
+    // Define the paths to the example pass files
+
+    const thumbnailPath = path.join(
+      __dirname,
+      "../examplePass/examplePass.pass/thumbnail.png"
+    );
+    const iconPath = path.join(
+      __dirname,
+      "../examplePass/examplePass.pass/icon.png"
+    );
+    const passJsonPath = path.join(
+      __dirname,
+      "../examplePass/examplePass.pass/pass.json"
+    );
+    console.log(thumbnailPath);
+
+    // Check if required files exist
+    if (!fs.existsSync(thumbnailPath)) {
+      throw new Error(`Thumbnail file not found: ${thumbnailPath}`);
+    }
+    if (!fs.existsSync(iconPath)) {
+      throw new Error(`Icon file not found: ${iconPath}`);
+    }
+    if (!fs.existsSync(passJsonPath)) {
+      throw new Error(`Pass JSON file not found: ${passJsonPath}`);
+    }
 
     const pass = new PKPass(
       {
-        "thumbnail.png": fs.readFileSync("examplePass.pass/thumbnail.png"),
-        "icon.png": fs.readFileSync("examplePass.pass/icon.png"),
-        "pass.json": fs.readFileSync("examplePass.pass/pass.json"),
+        "thumbnail.png": fs.readFileSync(thumbnailPath),
+        "icon.png": fs.readFileSync(iconPath),
+        "pass.json": fs.readFileSync(passJsonPath),
         // "it.lproj/pass.strings": fs.readFileSync('examplePass.pass/it.lproj/pass.strings'),
       },
       {
