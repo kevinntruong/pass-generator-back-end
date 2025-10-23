@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { PKPass } from "passkit-generator";
 import { CONFIG } from "../config/constants.js";
 import type { PassRequest } from "../types/pass.js";
@@ -15,10 +16,10 @@ export async function generatePass(
 
     const pass = new PKPass(
       {
-        "thumbnail.png": fs.readFileSync("examplePass.pass/thumbnail.png"),
-        "icon.png": fs.readFileSync("examplePass.pass/icon.png"),
-        "pass.json": fs.readFileSync("examplePass.pass/pass.json"),
-        // "it.lproj/pass.strings": fs.readFileSync('examplePass.pass/it.lproj/pass.strings'),
+        "thumbnail.png": fs.readFileSync(path.join(process.cwd(), "examplePass.pass/thumbnail.png")),
+        "icon.png": fs.readFileSync(path.join(process.cwd(), "examplePass.pass/icon.png")),
+        "pass.json": fs.readFileSync(path.join(process.cwd(), "examplePass.pass/pass.json")),
+        // "it.lproj/pass.strings": fs.readFileSync(path.join(process.cwd(), 'examplePass.pass/it.lproj/pass.strings')),
       },
       {
         wwdr: Buffer.from(CONFIG.PKPASS_WWDR, "base64").toString(),
